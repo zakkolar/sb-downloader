@@ -1,7 +1,9 @@
 // MIT Licensed.
 // https://github.com/forkphorus/sb-downloader
 
-window.SBDL = (function() {
+const JSZip = require('jszip');
+
+export default (function() {
   'use strict';
 
   // Customizable hooks that can be overridden by other scripts to measure progress.
@@ -40,7 +42,7 @@ window.SBDL = (function() {
       return nameA.localeCompare(nameB);
     });
   }
-  
+
   // Loads a Scratch 1 project
   function loadScratch1Project(id) {
     const PROJECTS_API = 'https://projects.scratch.mit.edu/internalapi/project/$id/get/';
@@ -209,6 +211,9 @@ window.SBDL = (function() {
     function addFile(data) {
       progressHooks.newTask();
       const path = data.md5ext;
+      if(!path){
+        return;
+      }
       return fetch(ASSETS_API.replace('$path', path))
         .then((request) => request.arrayBuffer())
         .then((buffer) => {
@@ -264,7 +269,7 @@ window.SBDL = (function() {
   }
 
   // Adds a list of files to a JSZip archive.
-  function createArchive(files, progressCallback) {
+  function createArchive(files) {
     const zip = new JSZip();
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
@@ -275,8 +280,6 @@ window.SBDL = (function() {
     return zip.generateAsync({
       type: 'blob',
       compression: 'DEFLATE',
-    }, function(metadata) {
-      progressCallback(metadata.percent / 100);
     });
   }
 
